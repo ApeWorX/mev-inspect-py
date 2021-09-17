@@ -23,6 +23,7 @@ from mev_inspect.db import get_session
 from mev_inspect.miner_payments import get_miner_payments
 from mev_inspect.swaps import get_swaps
 from mev_inspect.retry import http_retry_with_backoff_request_middleware
+from mev_inspect.aave_liquidations import get_liquidations
 
 
 @click.group()
@@ -84,6 +85,7 @@ def _inspect_block(
     should_print_miner_payments: bool = True,
     should_write_classified_traces: bool = True,
     should_write_swaps: bool = True,
+    # should_write_liquidations: bool = True,
     should_write_arbitrages: bool = True,
     should_write_miner_payments: bool = True,
 ):
@@ -119,6 +121,14 @@ def _inspect_block(
     if should_write_arbitrages:
         delete_arbitrages_for_block(db_session, block_number)
         write_arbitrages(db_session, arbitrages)
+
+    liquidations = get_liquidations(classified_traces)
+    click.echo(f"Found {len(liquidations)} liquidations")
+    print(liquidations)
+
+    # if should_write_liquidations:
+    #    delete_swaps_for_blocks(db_session, block_number)
+    #    write_liquidations(db_session, liquidations)
 
     if should_print_stats:
         stats = get_stats(classified_traces)
